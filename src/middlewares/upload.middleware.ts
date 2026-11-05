@@ -2,10 +2,23 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 
-const uploadDir = path.resolve(process.cwd(), "uploads", "avatars");
+let uploadDir = path.resolve(process.cwd(), "uploads", "avatars");
 
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
+try {
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  }
+} catch {
+  // Fallback seguro para /tmp caso o ambiente de contêiner restrinja escrita em /app
+  const fallbackDir = path.resolve("/tmp", "uploads", "avatars");
+  try {
+    if (!fs.existsSync(fallbackDir)) {
+      fs.mkdirSync(fallbackDir, { recursive: true });
+    }
+    uploadDir = fallbackDir;
+  } catch (err) {
+    console.warn("Aviso: Falha ao inicializar diretório de uploads:", err);
+  }
 }
 
 const storage = multer.diskStorage({
@@ -30,4 +43,3 @@ export const uploadAvatar = multer({
     }
   },
 });
-

@@ -20,8 +20,9 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Servir arquivos estáticos (uploads de avatares, fotos)
+// Servir arquivos estáticos (uploads de avatares, fotos) com fallback
 app.use("/uploads", express.static(path.resolve(process.cwd(), "uploads")));
+app.use("/uploads", express.static(path.resolve("/tmp", "uploads")));
 
 // Rotas da aplicação
 app.use(router);

@@ -44,7 +44,10 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 
-# Ajusta permissões
+# Cria diretório de uploads e ajusta permissões completas para o usuário filafacil
+RUN mkdir -p /app/uploads/avatars && \
+    chown -R filafacil:nodejs /app
+
 USER filafacil
 
 EXPOSE 3001
