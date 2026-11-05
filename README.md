@@ -18,17 +18,18 @@
 
 1. [Visão Geral e Contexto](#-visão-geral-e-contexto)
 2. [O que Foi Implementado](#-o-que-foi-implementado)
-3. [Arquitetura e Stack Tecnológica](#-arquitetura-e-stack-tecnológica)
-4. [Integração Oficial com o Supabase](#-integração-oficial-com-o-supabase)
-5. [Como Rodar o Projeto na Máquina](#-como-rodar-o-projeto-na-máquina)
-6. [Como Testar a Aplicação](#-como-testar-a-aplicação)
+3. [Documentação Interativa Swagger UI (/docs)](#-documentação-interativa-swagger-ui-docs)
+4. [Arquitetura e Stack Tecnológica](#-arquitetura-e-stack-tecnológica)
+5. [Integração Oficial com o Supabase](#-integração-oficial-com-o-supabase)
+6. [Como Rodar o Projeto na Máquina](#-como-rodar-o-projeto-na-máquina)
+7. [Como Testar a Aplicação](#-como-testar-a-aplicação)
    - [Opção 1: Testes Automatizados E2E (npm test)](#opção-1-testes-automatizados-e2e-npm-test)
    - [Opção 2: Testes Manuais via cURL / Insomnia / Postman](#opção-2-testes-manuais-via-curl--insomnia--postman)
-7. [Documentação de Rotas da API REST](#-documentação-de-rotas-da-api-rest)
-8. [Eventos em Tempo Real (Socket.IO)](#-eventos-em-tempo-real-socketio)
-9. [Como Fazer Deploy Gratuito (Render e Koyeb)](#-como-fazer-deploy-gratuito-render-e-koyeb)
-10. [Estrutura de Pastas do Projeto](#-estrutura-de-pastas-do-projeto)
-11. [Equipe e Autoria](#-equipe-e-autoria)
+8. [Documentação de Rotas da API REST](#-documentação-de-rotas-da-api-rest)
+9. [Eventos em Tempo Real (Socket.IO)](#-eventos-em-tempo-real-socketio)
+10. [Como Fazer Deploy Gratuito (Render e Koyeb)](#-como-fazer-deploy-gratuito-render-e-koyeb)
+11. [Estrutura de Pastas do Projeto](#-estrutura-de-pastas-do-projeto)
+12. [Equipe e Autoria](#-equipe-e-autoria)
 
 ---
 
@@ -57,6 +58,16 @@ O backend do FilaFácil UBS foi estruturado em **7 módulos operacionais complet
 | **5. Painel TV & WebSockets** | Endpoints dedicados para recuperação de chamada ativa (`/api/tv/current-call`) e próximas senhas previstas (`/api/tv/upcoming`), com sincronização via Socket.IO para múltiplos guichês e telas. | ✅ 100% |
 | **6. Métricas & Relatórios** | Cálculo em tempo real de pacientes aguardando, tempo médio de espera, taxa de absenteísmo, adesão à meta SUS (20 min), gráficos por período e exportação em PDF e CSV. | ✅ 100% |
 | **7. Histórico & Auditoria** | Linha do tempo auditável de cada atendimento (hora de emissão, chamada, início e término, sala e operador responsável), filtros avançados e exportação para auditoria ambulatorial. | ✅ 100% |
+
+---
+
+## 📖 Documentação Interativa Swagger UI (`/docs`)
+
+A API conta com interface interativa **Swagger UI** completa e especificação **OpenAPI 3.0** com botão *"Try it out"* para testar todos os endpoints direto pelo navegador:
+
+- **Produção (Render):** [https://backend-filafacil.onrender.com/docs](https://backend-filafacil.onrender.com/docs)
+- **Local:** [http://localhost:3001/docs](http://localhost:3001/docs) (ou `/api-docs`)
+- **JSON OpenAPI (para Insomnia/Postman):** [https://backend-filafacil.onrender.com/docs.json](https://backend-filafacil.onrender.com/docs.json)
 
 ---
 
