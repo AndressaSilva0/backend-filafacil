@@ -33,3 +33,4 @@ services:
         sync: false
       - key: SUPABASE_JWKS_URL
         value: "https://hbpqgedsxbthvmmyjeol.supabase.co/auth/v1/.well-known/jwks.json"
+
