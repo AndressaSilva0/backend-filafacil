@@ -17,6 +17,7 @@ export const registerSchema = z.object({
 });
 
 export const loginSchema = z.object({
+  login: z.string().optional(),
   identifier: z.string().optional(),
   cpf: z.string().optional(),
   email: z.string().optional(),

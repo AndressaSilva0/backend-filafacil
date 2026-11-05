@@ -94,31 +94,44 @@ export class AuthService {
   }
 
   static async login(data: {
+    login?: string;
     identifier?: string;
     cpf?: string;
     email?: string;
     password: string;
     rememberMe?: boolean;
   }) {
-    const term = (data.identifier || data.cpf || data.email || "").trim();
+    const rawTerm = (data.login || data.identifier || data.cpf || data.email || "").trim();
 
-    if (!term) {
+    if (!rawTerm) {
       throw new Error("Informe seu CPF ou E-mail para acessar.");
     }
 
-    const isEmail = term.includes("@");
     let user;
 
-    if (isEmail) {
-      user = await prisma.user.findUnique({
-        where: { email: term.toLowerCase() },
-      });
-    } else {
-      const cleaned = cleanCPF(term);
-      const formatted = formatCPF(cleaned);
+    if (rawTerm.includes("@")) {
+      // Busca por e-mail ignorando maiúsculas/minúsculas
       user = await prisma.user.findFirst({
         where: {
-          OR: [{ cpf: formatted }, { cpf: cleaned }],
+          email: {
+            equals: rawTerm.toLowerCase().trim(),
+            mode: "insensitive",
+          },
+        },
+      });
+    } else {
+      // Tratamento completo do CPF: remove pontos, traços, barras e espaços
+      const clean = cleanCPF(rawTerm);
+      const formatted = formatCPF(clean);
+
+      user = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { cpf: formatted },
+            { cpf: clean },
+            { cpf: rawTerm },
+            { email: { equals: rawTerm.toLowerCase().trim(), mode: "insensitive" } },
+          ],
         },
       });
     }
@@ -152,20 +165,32 @@ export class AuthService {
   }
 
   static async forgotPassword(identifier: string) {
-    const term = identifier.trim();
-    const isEmail = term.includes("@");
+    const rawTerm = (identifier || "").trim();
+
+    if (!rawTerm) {
+      throw new Error("Informe seu CPF ou E-mail.");
+    }
 
     let user;
-    if (isEmail) {
-      user = await prisma.user.findUnique({
-        where: { email: term.toLowerCase() },
-      });
-    } else {
-      const cleaned = cleanCPF(term);
-      const formatted = formatCPF(cleaned);
+    if (rawTerm.includes("@")) {
       user = await prisma.user.findFirst({
         where: {
-          OR: [{ cpf: formatted }, { cpf: cleaned }],
+          email: {
+            equals: rawTerm.toLowerCase().trim(),
+            mode: "insensitive",
+          },
+        },
+      });
+    } else {
+      const clean = cleanCPF(rawTerm);
+      const formatted = formatCPF(clean);
+      user = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { cpf: formatted },
+            { cpf: clean },
+            { cpf: rawTerm },
+          ],
         },
       });
     }

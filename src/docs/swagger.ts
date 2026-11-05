@@ -174,7 +174,7 @@ Esta API gerencia o ciclo completo de acolhimento na Atenção Primária à Saú
       post: {
         tags: ["Autenticação"],
         summary: "Autenticação do Operador",
-        description: "Realiza o login por E-mail ou CPF com senha e devolve o token JWT.",
+        description: "Realiza o login por E-mail ou CPF (com ou sem pontuação) com senha e devolve o token JWT.",
         requestBody: {
           required: true,
           content: {
@@ -183,8 +183,12 @@ Esta API gerencia o ciclo completo de acolhimento na Atenção Primária à Saú
                 type: "object",
                 required: ["login", "password"],
                 properties: {
-                  login: { type: "string", example: "andressa.silva@ubs.saude.gov.br" },
-                  password: { type: "string", example: "SenhaForte123!" },
+                  login: {
+                    type: "string",
+                    description: "E-mail ou CPF (com ou sem pontuação)",
+                    example: "recepcao@filafacil.ubs",
+                  },
+                  password: { type: "string", example: "senha123" },
                   rememberMe: { type: "boolean", example: true },
                 },
               },
