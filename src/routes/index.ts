@@ -10,7 +10,29 @@ import historyRoutes from "./history.routes";
 
 const router = Router();
 
-// Healthcheck endpoint (usado pelo Railway, Docker e monitoramento)
+// Rota raiz com apresentação amigável e status da API
+router.get("/", (_req, res) => {
+  res.json({
+    name: "🏥 FilaFácil UBS - API & WebSockets",
+    status: "online",
+    version: "1.0.0",
+    description: "Sistema de Gerenciamento, Triagem e Chamada em Tempo Real para UBS (SUS)",
+    health: "/health",
+    docs: "https://github.com/AndressaSilva0/backend-filafacil#readme",
+    endpoints: {
+      auth: "/api/auth",
+      users: "/api/users",
+      patients: "/api/patients",
+      tickets: "/api/tickets",
+      rooms: "/api/rooms",
+      tv: "/api/tv",
+      stats: "/api/stats",
+      history: "/api/history",
+    },
+  });
+});
+
+// Healthcheck endpoint (usado pelo Render, Docker e monitoramento)
 router.get("/health", (_req, res) => {
   res.json({
     status: "ok",
