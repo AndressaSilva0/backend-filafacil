@@ -1,0 +1,13 @@
+node_modules/
+dist/
+build/
+uploads/
+.env
+.env.*
+.git
+.github
+.vscode
+.agents
+*.log
+npm-debug.log*
+test/

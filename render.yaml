@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: filafacil-backend
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: CLIENT_ORIGIN
+        value: "*"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 1d
+      - key: JWT_REMEMBER_EXPIRES_IN
+        value: 30d
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
+        sync: false
+      - key: SUPABASE_URL
+        value: "https://hbpqgedsxbthvmmyjeol.supabase.co"
+      - key: SUPABASE_PUBLISHABLE_KEY
+        value: "sb_publishable_dVSXpM70rKh0dkI8gDCQew_BJcNJsFJ"
+      - key: SUPABASE_SECRET_KEY
+        sync: false
+      - key: SUPABASE_JWKS_URL
+        value: "https://hbpqgedsxbthvmmyjeol.supabase.co/auth/v1/.well-known/jwks.json"
