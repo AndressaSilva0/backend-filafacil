@@ -163,3 +163,112 @@ Todos os integrantes revisaram e concordaram com o conteúdo deste documento.
 ## 📄 Licença
 
 Este projeto foi desenvolvido como parte de uma disciplina acadêmica do IFMA.
+
+---
+
+## 💻 Como Rodar o Backend Localmente
+
+### 1. Pré-requisitos
+- Node.js 18+ (recomendado Node 20+)
+- PostgreSQL local ou Supabase
+
+### 2. Instalação
+```bash
+npm install
+```
+
+### 3. Configurar Variáveis de Ambiente
+Copie o arquivo `.env.example` para `.env`:
+```bash
+cp .env.example .env
+```
+
+### 4. Executar Migrações e Seed do Banco
+```bash
+npx prisma db push
+npm run prisma:seed
+```
+
+### 5. Iniciar em Modo de Desenvolvimento
+```bash
+npm run dev
+```
+O servidor estará rodando em `http://localhost:3001` (com WebSocket no mesmo endereço).
+
+### 6. Executar Testes Automatizados E2E
+```bash
+npm test
+```
+
+---
+
+## 📡 Documentação Oficial da API REST & WebSockets
+
+### 1. Autenticação e Gestão de Operadores (`/api/auth` e `/api/users`)
+- `POST /api/auth/register`: Cadastro de operador com validação de CPF e termos SUS.
+- `POST /api/auth/login`: Autenticação por CPF ou E-mail + Senha, geração de token JWT.
+- `POST /api/auth/forgot-password`: Solicitação de recuperação de senha por e-mail/CPF.
+- `POST /api/auth/reset-password`: Redefinição de senha utilizando token de segurança.
+- `GET /api/users/profile`: Consulta perfil do operador logado (Bearer Token).
+- `PUT /api/users/profile`: Atualização cadastral (telefone, cargo, unidade, matrícula funcional).
+- `PUT /api/users/change-password`: Alteração de senha com validação da senha atual.
+- `POST /api/users/avatar`: Upload de foto de perfil (multipart/form-data) ou seleção de preset.
+
+### 2. Cadastro e Busca de Pacientes (`/api/patients`)
+- `GET /api/patients/search?q=...`: Busca rápida unificada (Nome, CPF ou Cartão SUS) com simulação CADSUS.
+- `GET /api/patients`: Listagem paginada de pacientes.
+- `GET /api/patients/:id`: Detalhes cadastrais e histórico de atendimentos do paciente.
+- `POST /api/patients`: Cadastro de paciente com prioridades legais e condições especiais.
+- `PUT /api/patients/:id`: Atualização cadastral do cidadão.
+
+### 3. Motor de Filas e Gestão de Senhas (`/api/tickets` ou `/api/queue`)
+- `POST /api/tickets`: Emissão de senha com sequencial diário (URG-001, PRE-001, NOR-001) e comprovante térmico com QR Code.
+- `GET /api/tickets`: Listagem da fila com filtros por status, especialidade, consultório, data e busca textual.
+- `GET /api/tickets/waiting`: Fila legal do SUS ordenada por prioridade (Manchester > 80+ > 60+/Gestante/PCD > Convencional, FIFO).
+- `POST /api/tickets/call-next`: Chama o próximo paciente da fila ordenado por prioridade.
+- `POST /api/tickets/:id/call`: Chama uma senha específica vinculando sala e profissional.
+- `POST /api/tickets/:id/recall`: Rechama a senha repetindo o alerta sonoro e visual na TV.
+- `POST /api/tickets/:id/start`: Altera status para `EM_ATENDIMENTO` e inicia contagem de consulta.
+- `POST /api/tickets/:id/finish`: Finaliza atendimento calculando tempo de espera e consulta, permite registrar CID-10 e anotações.
+- `POST /api/tickets/:id/absent`: Marca o paciente como `AUSENTE` após tentativas sem resposta.
+- `GET /api/tickets/export`: Exportação completa da fila diária em formato CSV (compatível com Excel).
+
+### 4. Comunicação Real-time e Painel de TV (Socket.IO & `/api/tv`)
+- **Eventos WebSocket Emitidos:**
+  - `ticket:called`: Notifica nova senha chamada `{ code, patientName, room, doctor, priority, priorityLabel, specialty, timestamp }`.
+  - `ticket:status-updated`: Sincroniza guichês quando um paciente é chamado, atendido, finalizado ou ausente.
+  - `queue:metrics-updated`: Atualiza contadores em tempo real para o dashboard.
+- **Endpoints REST para a TV:**
+  - `GET /api/tv/current-call`: Retorna a chamada ativa atual para recuperação de estado em recargas.
+  - `GET /api/tv/upcoming`: Lista as próximas senhas previstas com cálculo de tempo estimado.
+
+### 5. Consultórios e Salas de Atendimento (`/api/rooms`)
+- `GET /api/rooms`: Listagem de salas, especialidade padrão e profissionais alocados.
+- `GET /api/rooms/:id`: Detalhes da sala.
+- `POST /api/rooms`: Criação de sala ou consultório.
+- `PUT /api/rooms/:id`: Atualização dos dados da sala.
+- `POST /api/rooms/:id/assign`: Vincula o médico ou enfermeiro à sala de onde realizará as chamadas.
+
+### 6. Estatísticas, Relatórios e Métricas (`/api/stats`)
+- `GET /api/stats/dashboard`: Métricas em tempo real (total aguardando por prioridade, tempo médio de espera, atendidos hoje, ausências, cumprimento da meta de 20 min do SUS).
+- `GET /api/stats/reports?period=today|week|month`: Relatórios analíticos por período (volume por especialidade, distribuição de pico das 07h às 17h, taxa de absenteísmo).
+- `GET /api/stats/export?format=pdf|csv`: Exportação do relatório consolidado em PDF ou CSV.
+
+### 7. Histórico e Auditoria Clínica (`/api/history`)
+- `GET /api/history`: Consulta retroativa com filtros por data, período, status, especialidade, sala, profissional e busca textual.
+- `GET /api/history/:id`: Detalhes completos do atendimento com auditoria clínica e linha do tempo de eventos.
+- `GET /api/history/export`: Exportação do histórico clínico completo em CSV/Excel.
+
+---
+
+## ☁️ Deploy no Railway com Supabase
+
+1. Crie um novo projeto no [Railway](https://railway.app/).
+2. Escolha **"Deploy from GitHub repo"** e selecione o repositório `backend-filafacil`.
+3. Em **Variables** do serviço no Railway, adicione:
+   - `DATABASE_URL`: URL do Pooler do Supabase (com `?pgbouncer=true`)
+   - `DIRECT_URL`: URL direta do Supabase
+   - `CLIENT_ORIGIN`: URL do seu frontend React/Vite (ex: `https://seu-front.vercel.app` ou `*`)
+4. O Railway executará automaticamente o script de build (`npm run build`) e iniciará o servidor (`npm run start`).
+5. A rota de healthcheck está configurada em `/health`.
+

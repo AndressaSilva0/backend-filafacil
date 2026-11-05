@@ -1,0 +1,156 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Priority {
+  NORMAL
+  PREFERENCIAL
+  URGENTE
+}
+
+enum QueueStatus {
+  AGUARDANDO
+  CHAMANDO
+  CHAMADO
+  TRIAGEM
+  EM_ATENDIMENTO
+  FINALIZADO
+  AUSENTE
+  CANCELADO
+}
+
+enum Role {
+  RECEPCIONISTA
+  MEDICO
+  ENFERMEIRO
+  TEC_ENFERMAGEM
+  DENTISTA
+  COORDENADOR
+  ACS
+  ADMIN
+}
+
+enum ServiceType {
+  CLINICO_GERAL
+  PEDIATRIA
+  GINECOLOGIA
+  ODONTOLOGIA
+  ENFERMAGEM
+  VACINACAO
+  TRIAGEM
+  CURATIVO
+  FARMACIA
+  CONSULTA_MEDICA
+}
+
+model User {
+  id                   String    @id @default(uuid())
+  name                 String
+  cpf                  String    @unique
+  email                String    @unique
+  password             String
+  role                 Role      @default(RECEPCIONISTA)
+  unit                 String?   @default("UBS Centro - Dr. José Silva")
+  phone                String?
+  registrationNumber   String?   // Matrícula funcional / CRM / COREN
+  avatarUrl            String?
+  acceptedTerms        Boolean   @default(true)
+  resetPasswordToken   String?
+  resetPasswordExpires DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  assignedRooms   Room[]
+  ticketsAttended Ticket[]
+
+  @@map("users")
+}
+
+model Room {
+  id                   String      @id @default(uuid())
+  name                 String      @unique // Ex: "Consultório 01", "Triagem Rápida"
+  label                String?     // Ex: "Consultório Médico", "Triagem Rápida"
+  defaultService       ServiceType @default(CLINICO_GERAL)
+  assignedProfessional String?     // Ex: "Dra. Mariana Vasconcellos"
+  assignedUserId       String?
+  assignedUser         User?       @relation(fields: [assignedUserId], references: [id])
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+
+  tickets Ticket[]
+
+  @@map("rooms")
+}
+
+model Patient {
+  id               String    @id @default(uuid())
+  name             String
+  cpf              String?   @unique
+  susCard          String?   @unique // Número do Cartão do SUS (CNS)
+  birthDate        DateTime?
+  phone            String?
+  priority         Priority  @default(NORMAL)
+  priorityLabel    String?   // Ex: "Idoso 60+", "Idoso 80+", "Gestante", "PCD", "Comum"
+  specialCondition String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  tickets Ticket[]
+
+  @@map("patients")
+}
+
+model Ticket {
+  id                      String      @id @default(uuid())
+  code                    String      // Ex: URG-001, PRE-001, NOR-001, A123
+  patientId               String
+  patient                 Patient     @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  patientName             String
+  cpf                     String?
+  cartaoSus               String?
+  birthDate               DateTime?
+  phone                   String?
+  age                     Int?
+  
+  priority                Priority    @default(NORMAL)
+  priorityWeight          Int         @default(1) // 4: Urgência, 3: 80+, 2: 60+/Gestante/PCD, 1: Normal
+  priorityLabel           String?     // Ex: "Superprioridade 80+", "Prioritário (60+)", "Urgência Triagem"
+  
+  service                 ServiceType @default(CLINICO_GERAL)
+  serviceLabel            String?     // Ex: "Clínico Geral", "Pediatria"
+  
+  status                  QueueStatus @default(AGUARDANDO)
+  
+  roomId                  String?
+  roomRel                 Room?       @relation(fields: [roomId], references: [id])
+  room                    String?     // Ex: "Consultório 01"
+  roomLabel               String?     // Ex: "Consultório Médico"
+  
+  userId                  String?
+  user                    User?       @relation(fields: [userId], references: [id])
+  professional            String?     // Ex: "Dra. Mariana Vasconcellos"
+  
+  cid                     String?     // Ex: "I10 — Hipertensão essencial"
+  notes                   String?
+  callCount               Int         @default(0)
+  
+  scheduledAt             DateTime?   // Data/horário selecionado no calendário e agendamento
+  createdAt               DateTime    @default(now())
+  calledAt                DateTime?
+  attendedAt              DateTime?
+  finishedAt              DateTime?
+  
+  waitTimeMinutes         Int?
+  consultationTimeMinutes Int?
+
+  @@index([status, priorityWeight, createdAt])
+  @@index([createdAt])
+  @@index([status])
+  @@map("tickets")
+}
