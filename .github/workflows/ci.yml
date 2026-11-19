@@ -60,3 +60,4 @@ jobs:
           DIRECT_URL: "postgresql://postgres:testpassword@localhost:5432/filafacil_test?schema=public"
           JWT_SECRET: "ci-secret-key-sus-ubs-filafacil-2026"
         run: npm test
+
