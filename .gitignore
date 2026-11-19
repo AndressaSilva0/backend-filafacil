@@ -21,6 +21,9 @@ uploads/
 prisma/*.db
 prisma/*.db-journal
 
+# Internal agent stats
+.github/context-mode/
+
 # OS and IDE files
 .DS_Store
 Thumbs.db
