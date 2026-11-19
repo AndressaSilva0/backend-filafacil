@@ -4,6 +4,7 @@
 
 > Desenvolvido com Node.js, Express, TypeScript, Prisma ORM, Socket.IO e PostgreSQL no **Supabase**.
 
+[![CI/CD Pipeline](https://github.com/AndressaSilva0/backend-filafacil/actions/workflows/ci.yml/badge.svg)](https://github.com/AndressaSilva0/backend-filafacil/actions)
 [![Node.js Version](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Prisma ORM](https://img.shields.io/badge/Prisma-5.x-2D3748?logo=prisma&logoColor=white)](https://www.prisma.io/)

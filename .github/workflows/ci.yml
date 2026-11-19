@@ -1,0 +1,62 @@
+name: CI/CD Pipeline - FilaFácil UBS
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-and-build:
+    name: Build & Testes Automatizados E2E
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: filafacil_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: 📥 Checkout do Repositório
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Configurar Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: 📦 Instalar Dependências
+        run: npm ci
+
+      - name: 🗄️ Sincronizar Banco de Dados (Prisma Push & Seed)
+        env:
+          DATABASE_URL: "postgresql://postgres:testpassword@localhost:5432/filafacil_test?schema=public"
+          DIRECT_URL: "postgresql://postgres:testpassword@localhost:5432/filafacil_test?schema=public"
+        run: |
+          npx prisma db push
+          npm run prisma:seed
+
+      - name: 🔨 Compilar Aplicação TypeScript (Build)
+        env:
+          DATABASE_URL: "postgresql://postgres:testpassword@localhost:5432/filafacil_test?schema=public"
+          DIRECT_URL: "postgresql://postgres:testpassword@localhost:5432/filafacil_test?schema=public"
+        run: npm run build
+
+      - name: 🧪 Executar Bateria de Testes Automatizados E2E (37 testes)
+        env:
+          PORT: 3001
+          DATABASE_URL: "postgresql://postgres:testpassword@localhost:5432/filafacil_test?schema=public"
+          DIRECT_URL: "postgresql://postgres:testpassword@localhost:5432/filafacil_test?schema=public"
+          JWT_SECRET: "ci-secret-key-sus-ubs-filafacil-2026"
+        run: npm test
