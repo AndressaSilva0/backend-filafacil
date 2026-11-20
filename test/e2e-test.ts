@@ -9,14 +9,22 @@ const PORT = 3099;
 async function runTests() {
   console.log("🧪 Iniciando Bateria de Testes Automatizados E2E FilaFácil Backend...");
 
-  const server = http.createServer(app);
-  const io = new Server(server, { cors: { origin: "*" } });
-  initQueueSocket(io);
+  const externalUrl = process.env.TEST_API_URL || process.env.API_URL;
+  let server: http.Server | undefined;
+  let baseUrl: string;
 
-  await new Promise<void>((resolve) => server.listen(PORT, () => resolve()));
-  console.log(`🌐 Servidor de testes ativo na porta ${PORT}`);
+  if (externalUrl) {
+    baseUrl = externalUrl.replace(/\/api\/?$/, "").replace(/\/$/, "");
+    console.log(`🌐 Executando testes contra servidor alvo: ${baseUrl}`);
+  } else {
+    server = http.createServer(app);
+    const io = new Server(server, { cors: { origin: "*" } });
+    initQueueSocket(io);
 
-  const baseUrl = `http://localhost:${PORT}`;
+    await new Promise<void>((resolve) => server!.listen(PORT, () => resolve()));
+    console.log(`🌐 Servidor de testes ativo na porta ${PORT}`);
+    baseUrl = `http://localhost:${PORT}`;
+  }
 
   let passed = 0;
   let failed = 0;
@@ -498,7 +506,9 @@ async function runTests() {
   });
 
   socketClient.disconnect();
-  server.close();
+  if (server) {
+    server.close();
+  }
 
   console.log("\n==============================================");
   console.log(`🎯 RESULTADO DOS TESTES: ${passed} PASSOU, ${failed} FALHOU`);
