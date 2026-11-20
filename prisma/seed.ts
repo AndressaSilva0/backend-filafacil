@@ -15,6 +15,21 @@ async function main() {
   const passwordHash = await bcrypt.hash("senha123", 10);
 
   // 2. Criar Operadores do Sistema
+  const admin = await prisma.user.create({
+    data: {
+      name: "Administrador Geral FilaFácil",
+      cpf: "000.000.000-00",
+      email: "admin@filafacil.ubs",
+      password: passwordHash,
+      role: Role.ADMIN,
+      unit: "Coordenação Central de Saúde - SUS",
+      phone: "(98) 99999-0000",
+      registrationNumber: "ADM-001",
+      acceptedTerms: true,
+      avatarUrl: "/images/avatars/avatar-admin.svg",
+    },
+  });
+
   const recepcao = await prisma.user.create({
     data: {
       name: "Mariana Souza",
