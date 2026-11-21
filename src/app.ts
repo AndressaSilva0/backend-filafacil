@@ -6,11 +6,25 @@ import { errorHandler } from "./middlewares/error.middleware";
 
 const app = express();
 
-// Configuração de CORS (frontend Vite/React local ou em produção)
-const allowedOrigin = process.env.CLIENT_ORIGIN || "*";
+// Configuração de CORS (suporte a Vercel, Render e desenvolvimento local)
+const allowedOrigin = process.env.CLIENT_ORIGIN;
 app.use(
   cors({
-    origin: allowedOrigin === "*" ? "*" : allowedOrigin.split(","),
+    origin: (origin, callback) => {
+      // Permite requisições sem origin (como mobile apps, curl, Swagger, tarefas internas)
+      if (!origin) return callback(null, true);
+      
+      // Se configurado com origens específicas separadas por vírgula
+      if (allowedOrigin && allowedOrigin !== "*") {
+        const allowedList = allowedOrigin.split(",").map((o) => o.trim());
+        if (allowedList.includes(origin)) {
+          return callback(null, true);
+        }
+      }
+      
+      // Permite dinamicamente o origin requisitante garantindo compatibilidade com credentials: true
+      return callback(null, true);
+    },
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     credentials: true,
   })

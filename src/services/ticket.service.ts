@@ -76,7 +76,7 @@ export class TicketService {
           name,
           cpf: formattedCpf,
           susCard: cleanedSus,
-          birthDate: data.birthDate ? new Date(data.birthDate) : null,
+          birthDate: parseFlexibleDate(data.birthDate),
           phone: data.phone,
           priority: priorityInfo.priority,
           priorityLabel: priorityInfo.priorityLabel,
@@ -113,6 +113,28 @@ export class TicketService {
       }
     }
 
+    // Validação resiliente da sala para evitar violação de chave estrangeira
+    let validRoomId: string | null = null;
+    let roomText: string | null = data.room || null;
+    const roomCandidate = data.roomId || data.room;
+    if (roomCandidate) {
+      const foundRoom = await prisma.room.findFirst({
+        where: {
+          OR: [
+            { id: roomCandidate },
+            { name: { equals: roomCandidate, mode: "insensitive" } },
+            { label: { equals: roomCandidate, mode: "insensitive" } },
+          ],
+        },
+      });
+      if (foundRoom) {
+        validRoomId = foundRoom.id;
+        if (!roomText) roomText = foundRoom.name;
+      } else {
+        if (!roomText) roomText = roomCandidate;
+      }
+    }
+
     // 5. Cria ticket
     const ticket = await prisma.ticket.create({
       data: {
@@ -130,8 +152,8 @@ export class TicketService {
         service: serviceInfo.service,
         serviceLabel: serviceInfo.serviceLabel,
         status: QueueStatus.AGUARDANDO,
-        roomId: data.roomId,
-        room: data.room,
+        roomId: validRoomId,
+        room: roomText,
         notes: data.notes,
         scheduledAt: scheduledDateTime,
       },
@@ -334,16 +356,36 @@ export class TicketService {
     let roomName: string | null = params.roomName || ticket.room;
     let roomLabel: string | null = ticket.roomLabel;
     let assignedProf: string | null = params.professionalName || ticket.professional || null;
+    let validRoomId: string | null = null;
 
-    // Se passou roomId, busca dados da sala
-    if (params.roomId) {
-      const room = await prisma.room.findUnique({
-        where: { id: params.roomId },
+    // Resolução segura da sala: busca por ID exato ou por Nome (ex: "Consultório 01")
+    const targetRoom = params.roomId || params.roomName;
+    if (targetRoom) {
+      const room = await prisma.room.findFirst({
+        where: {
+          OR: [
+            { id: targetRoom },
+            { name: { equals: targetRoom, mode: "insensitive" } },
+            { label: { equals: targetRoom, mode: "insensitive" } },
+          ],
+        },
       });
       if (room) {
+        validRoomId = room.id;
         roomName = room.name;
         roomLabel = room.label;
         if (!assignedProf) assignedProf = room.assignedProfessional;
+      } else {
+        // Se a sala não existe no banco como chave estrangeira, grava o texto diretamente em `room`
+        // e define roomId como null para evitar erro de Foreign Key Violation (tickets_roomId_fkey)
+        roomName = targetRoom;
+        validRoomId = null;
+      }
+    } else if (ticket.roomId) {
+      // Se a senha já tinha um roomId, valida se ainda existe no banco
+      const existing = await prisma.room.findUnique({ where: { id: ticket.roomId } });
+      if (existing) {
+        validRoomId = existing.id;
       }
     }
 
@@ -353,7 +395,7 @@ export class TicketService {
         status: QueueStatus.CHAMANDO,
         calledAt: new Date(),
         callCount: { increment: 1 },
-        roomId: params.roomId || ticket.roomId,
+        roomId: validRoomId,
         room: roomName || "Consultório",
         roomLabel: roomLabel || "Atendimento",
         userId: params.userId || ticket.userId,

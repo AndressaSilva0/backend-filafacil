@@ -1,6 +1,7 @@
 import { prisma } from "../config/prisma";
 import { cleanCPF, formatCPF } from "../utils/cpf";
 import { resolvePriorityDetails } from "../utils/ticketCode";
+import { parseFlexibleDate } from "../utils/date";
 
 // Base simulada do CADSUS Nacional para auto-completar na recepção se ainda não gravado no posto local
 const CADSUS_MOCK_CITIZENS = [
@@ -185,7 +186,7 @@ export class PatientService {
         name: data.name.trim(),
         cpf: formattedCpf,
         susCard: cleanedSus,
-        birthDate: data.birthDate ? new Date(data.birthDate) : null,
+        birthDate: parseFlexibleDate(data.birthDate),
         phone: data.phone,
         priority: priorityInfo.priority,
         priorityLabel: priorityInfo.priorityLabel,
@@ -213,7 +214,7 @@ export class PatientService {
     if (data.name !== undefined) updateData.name = data.name.trim();
     if (data.cpf !== undefined) updateData.cpf = data.cpf ? formatCPF(cleanCPF(data.cpf)) : null;
     if (data.susCard !== undefined) updateData.susCard = data.susCard ? cleanCPF(data.susCard) : null;
-    if (data.birthDate !== undefined) updateData.birthDate = data.birthDate ? new Date(data.birthDate) : null;
+    if (data.birthDate !== undefined) updateData.birthDate = parseFlexibleDate(data.birthDate);
     if (data.phone !== undefined) updateData.phone = data.phone;
     if (data.specialCondition !== undefined) updateData.specialCondition = data.specialCondition;
 

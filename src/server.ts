@@ -11,10 +11,13 @@ const allowedOrigin = process.env.CLIENT_ORIGIN || "*";
 // Criar servidor HTTP integrando Express
 const server = http.createServer(app);
 
-// Inicializar Socket.IO
+// Inicializar Socket.IO com CORS dinâmico para Vercel, Render e Localhost
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigin === "*" ? "*" : allowedOrigin.split(","),
+    origin: (origin, callback) => {
+      // Aceita qualquer origem requisitante mantendo credentials: true válido no navegador
+      callback(null, true);
+    },
     methods: ["GET", "POST"],
     credentials: true,
   },
