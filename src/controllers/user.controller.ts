@@ -22,7 +22,11 @@ export class UserController {
     try {
       const userId = req.user!.userId;
       const profile = await UserService.getProfile(userId);
-      res.json(profile);
+      res.json({
+        ...profile,
+        user: profile,
+        profile,
+      });
     } catch (error: any) {
       res.status(404).json({ error: error.message });
     }
@@ -34,6 +38,8 @@ export class UserController {
       const updated = await UserService.updateProfile(userId, req.body);
       res.json({
         message: "Perfil atualizado com sucesso!",
+        ...updated,
+        user: updated,
         profile: updated,
       });
     } catch (error: any) {
@@ -57,7 +63,12 @@ export class UserController {
 
       // Se enviou arquivo via multipart/form-data
       if (req.file) {
-        const fileUrl = `/uploads/avatars/${req.file.filename}`;
+        // Constrói URL pública completa para que o frontend na Vercel carregue do Render sem quebrar
+        const protocol = req.headers["x-forwarded-proto"] || req.protocol || "https";
+        const host = req.headers["x-forwarded-host"] || req.get("host") || "backend-filafacil.onrender.com";
+        const baseUrl = `${protocol}://${host}`;
+        const fileUrl = `${baseUrl}/uploads/avatars/${req.file.filename}`;
+
         const updated = await UserService.updateAvatar(userId, fileUrl);
         return res.json({
           message: "Foto de perfil atualizada com sucesso!",
